@@ -58,7 +58,7 @@ def main():
     :return nothing:
     """
     from fat_eval.materials.fatigue_materials import SS2506
-    from fat_eval.multiaxial_fatigue.critieria import haigh
+    from fat_eval.multiaxial_fatigue.criteria import haigh
     num_points = 3000
 
     stress_history = np.zeros((4, num_points, 6))
