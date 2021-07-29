@@ -49,7 +49,7 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, **ste
     job_list = [(criterion,  [stress, data, material], {}) for stress, data in zip(stress_history_chuncks, steel_data)]
     results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
 
-    return np.vstack(results)
+    return np.hstack(results)
 
 
 def main():
@@ -64,7 +64,7 @@ def main():
     stress_history = np.zeros((4, num_points, 6))
     hv = np.zeros(num_points) + 750
     austenite = np.zeros(num_points)
-    evaluate_effective_stress(stress_history, SS2506, haigh, hv=hv, austenite=austenite, cpus=8)
+    s = evaluate_effective_stress(stress_history, SS2506, haigh, hv=hv, austenite=austenite, cpus=8)
 
 
 if __name__ == '__main__':

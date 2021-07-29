@@ -8,7 +8,6 @@ from fat_eval.materials.fatigue_materials import SS2506
 
 
 def haigh(stress_history, steel_data, material):
-    print("Starting")
     try:
         mean_stress_sensitivities = material.mean_stress_sensitivity(steel_data)
     except AttributeError:
