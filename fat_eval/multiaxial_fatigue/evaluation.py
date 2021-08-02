@@ -37,19 +37,23 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, **ste
     :returns                A numpy array with effective fatigue stress values
     """
 
-    steel_data_list = [{}]*cpus
-    stress_history_chuncks = np.array_split(stress_history, cpus, axis=1)
-    for field_name, data in steel_data.items():
-        field_data = np.array_split(data, cpus)
-        for i in range(cpus):
-            steel_data_list[i][field_name] = field_data[i]
-    steel_data = []
-    for data in steel_data_list:
-        steel_data.append(SteelData(data))
-    job_list = [(criterion,  [stress, data, material], {}) for stress, data in zip(stress_history_chuncks, steel_data)]
-    results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
+    if cpus > 1:
+        steel_data_list = [{}]*cpus
+        stress_history_chuncks = np.array_split(stress_history, cpus, axis=1)
+        for field_name, data in steel_data.items():
+            field_data = np.array_split(data, cpus)
+            for i in range(cpus):
+                steel_data_list[i][field_name] = field_data[i]
+        steel_data = []
+        for data in steel_data_list:
+            steel_data.append(SteelData(data))
+        job_list = [(criterion,  [stress, data, material], {}) for stress, data in zip(stress_history_chuncks,
+                                                                                       steel_data)]
+        results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
 
-    return np.hstack(results)
+        return np.hstack(results)
+    else:
+        return criterion(stress_history, SteelData(steel_data), material)
 
 
 def main():
@@ -64,8 +68,8 @@ def main():
     stress_history = np.zeros((4, num_points, 6))
     hv = np.zeros(num_points) + 750
     austenite = np.zeros(num_points)
-    s = evaluate_effective_stress(stress_history, SS2506, haigh, hv=hv, austenite=austenite, cpus=8)
-
+    s = evaluate_effective_stress(stress_history, SS2506, haigh, hv=hv, austenite=austenite, cpus=1)
+    print(s)
 
 if __name__ == '__main__':
     main()
