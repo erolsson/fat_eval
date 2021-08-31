@@ -1,10 +1,6 @@
-from collections import namedtuple
-
 import numpy as np
 
 from scipy.linalg import eigh
-
-from fat_eval.materials.fatigue_materials import SS2506
 
 
 def haigh(stress_history, steel_data, material):
@@ -13,6 +9,18 @@ def haigh(stress_history, steel_data, material):
     except AttributeError:
         raise ValueError("The Haigh effective stress criterion is not implemented for material " + material.name
                          + " as it does not have any attribute mean_stress_sensitivity")
+    s = evaluate_haigh(stress_history, mean_stress_sensitivities)
+    try:
+        su = material.uniaxial_fatigue_limit(steel_data)
+    except AttributeError:
+        return s
+    data = np.zeros((s.shape[0], 2))
+    data[:, 0] = s
+    data[:, 1] = s/su
+    return data
+
+
+def evaluate_haigh(stress_history, mean_stress_sensitivities):
     time_points = stress_history.shape[0]
     effective_stress = 0*np.array(mean_stress_sensitivities)
     for i, mean_stress_k in enumerate(mean_stress_sensitivities):
@@ -52,6 +60,10 @@ def haigh(stress_history, steel_data, material):
 
 
 def main():
+    from collections import namedtuple
+
+    from fat_eval.materials.fatigue_materials import SS2506
+
     SteelData = namedtuple('SteelData', ['hv'])
     stress_history = np.array([[[1, 0, 0, 0, 0, 0],
                                 [0, 0, 0, 2, 0, 0]],

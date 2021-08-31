@@ -23,7 +23,7 @@ class SteelData:
         return self.__class__, (self.data, )
 
 
-def evaluate_effective_stress(stress_history, material, criterion, cpus=1, **steel_data):
+def evaluate_effective_stress(stress_history, material, criterion, cpus=1, search_grid=None, **steel_data):
     """
     Function for evaluating different effective fatigue stresses using multiple cpus
     :param stress_history:  3d - numpy_array with the stress history, first index represent the time, second index the
@@ -34,6 +34,8 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, **ste
     :param criterion        the criterion to be evaluated, current implemented criteria can be imported from
                             fat_eval.multiaxial_fatigue.criteria
     :param cpus             The number of cpus used for the evaluation
+    :param search_grid      Parameter controlling the angle increment when evaluating critical plane criteria
+                            Default is none which sets to a suitable value in each criterion
     :returns                A numpy array with effective fatigue stress values
     """
 
@@ -47,8 +49,9 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, **ste
         steel_data = []
         for data in steel_data_list:
             steel_data.append(SteelData(data))
-        job_list = [(criterion,  [stress, data, material], {}) for stress, data in zip(stress_history_chuncks,
-                                                                                       steel_data)]
+        job_list = [(criterion,
+                     [stress, data, material],
+                     {"search_grid": search_grid}) for stress, data in zip(stress_history_chuncks, steel_data)]
         results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
 
         return np.hstack(results)
@@ -69,7 +72,7 @@ def main():
     hv = np.zeros(num_points) + 750
     austenite = np.zeros(num_points)
     s = evaluate_effective_stress(stress_history, SS2506, haigh, hv=hv, austenite=austenite, cpus=1)
-    print(s)
+
 
 if __name__ == '__main__':
     main()

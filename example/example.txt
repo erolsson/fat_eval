@@ -1,0 +1,13 @@
+** This is how comments are written
+
+** path to the abaqus executable
+*abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
+
+** This command evaluates the effective stress named in criterion based on the stress history defined below
+*Effective_Stress, criterion=Findley, material=SS2506
+*Cyclic_stress, odb_file=~/path_to_odb_1.odb, step=step_name, frame=frame_number, instance=instance_name, element_set=element_set_name, factor=1
+*Cyclic_stress, odb_file=~/path_to_odb_2.odb, step=step_name, frame=frame_number, instance=instance_name, element_set=element_set_name, factor=1
+*Static_stress, odb_file=~/path_to_odb_2.odb, step=step_name, frame=frame_number, instance=instance_name, element_set=element_set_name, factor=1
+
+** This command writes the effective stress to an odb-file. The odb-file is created from the first cyclic odb - file if it does not exist
+*write_to_odb, odb_file=~/path_to_odb_1.odb, step=step_name, frame=frame_number, instance=instance_name, element_set=element_set_name

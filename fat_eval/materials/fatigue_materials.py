@@ -11,7 +11,7 @@ class Material:
 
     @staticmethod
     def sth(hv, effective_stress):
-        return 0
+        return 0*hv
 
     def sw(self, hv, effective_stress):
         return self.sw1 + hv*self.sw2
