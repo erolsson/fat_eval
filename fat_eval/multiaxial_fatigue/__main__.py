@@ -2,7 +2,11 @@ import argparse
 import pathlib
 import sys
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
+
+from abaqus_python_interface import OdbReadingError
+
+from fatigue_analysis import perform_fatigue_analysis
 
 
 class KeywordData:
@@ -12,7 +16,7 @@ class KeywordData:
         self.data = []
 
 
-class OdbStressData:
+class OdbData:
     """
     Small helper class to handle
     """
@@ -23,18 +27,22 @@ class OdbStressData:
             except KeyError:
                 if optional:
                     return default
-                raise ValueError("The", parameter_name, "is a mandatory parameter for the keyword", '*'
-                                 + keyword_data.keyword_name)
-        self.odb_file_name = pathlib.Path(read_keyword_parameter("odb_file"))
-        self.step_name = read_keyword_parameter("step_name", optional=True, default=None)
-        self.frame_number = read_keyword_parameter("frame_number", optional=True, default=-1)
+                raise FatigueFileReadingError("The parameter {par} is mandatory for the keyword *"
+                                              "{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
+        self.odb_file_name = pathlib.Path(read_keyword_parameter("odb_file")).expanduser()
+        self.step_name = read_keyword_parameter("step", optional=True, default=None)
+        self.frame_number = read_keyword_parameter("frame", optional=True, default=-1)
         self.element_set = read_keyword_parameter("element_set", optional=True, default='')
-        self.instance = read_keyword_parameter("instance", optional=True, default='')
-        self.factor = read_keyword_parameter("factor", optional=True, default=1.)
+        self.instance = read_keyword_parameter("instance", optional=True, default=None)
+        self.factor = float(read_keyword_parameter("factor", optional=True, default=1.))
 
 
 class FatigueFileReadingError(ValueError):
     pass
+
+
+FatigueAnalysisData = namedtuple("FatigueAnalysisData", ["abaqus", "effective_stress", "material", "cyclic_stresses",
+                                                         "static_stresses", "output_data", "heat_treatment"])
 
 
 def parse_fatigue_file(fatigue_file):
@@ -42,8 +50,8 @@ def parse_fatigue_file(fatigue_file):
         try:
             return keyword_data.parameters[parameter_name]
         except KeyError:
-            raise FatigueFileReadingError("The parameter {par} is mandatory for the keyword "
-                                          "*{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
+            raise FatigueFileReadingError(f"The parameter {par} is mandatory for the keyword "
+                                          f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
     keywords = defaultdict(list)
     keyword = None
 
@@ -68,7 +76,7 @@ def parse_fatigue_file(fatigue_file):
                     raise FatigueFileReadingError("The data line \n\t{0} \ncannot appear at line {1} of the "
                                                   "file".format(line, i))
     # Sanity check of the inputs, only one abaqus and one effective_stress keyword are allowed to appear in the file
-    mandatory_single_keywords = ['abaqus', 'effective_stress']
+    mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
     for keyword in mandatory_single_keywords:
         if len(keywords[keyword]) != 1:
             raise FatigueFileReadingError(f"The keyword *{keyword} is mandatory and must appear only once "
@@ -83,9 +91,13 @@ def parse_fatigue_file(fatigue_file):
     abq = read_mandatory_parameter(keywords["abaqus"][0], "abq")
     effective_stress = read_mandatory_parameter(keywords["effective_stress"][0], "criterion")
     material = read_mandatory_parameter(keywords["effective_stress"][0], "material")
-    cyclic_stresses = [OdbStressData(stress_step) for stress_step in keywords["cyclic_stress"]]
-    static_stresses = [OdbStressData(stress_step) for stress_step in keywords["static_stress"]]
-    output_data = [OdbStressData(output) for output in keywords["write_to_odb"]]
+    cyclic_stresses = [OdbData(stress_step) for stress_step in keywords["cyclic_stress"]]
+    static_stresses = [OdbData(stress_step) for stress_step in keywords["static_stress"]]
+    output_data = [OdbData(output) for output in keywords["write_to_odb"]]
+    heat_treatment = OdbData(keywords["heat_treatment"][0])
+
+    return FatigueAnalysisData(abq, effective_stress, material, cyclic_stresses, static_stresses, output_data,
+                               heat_treatment)
 
 
 def main():
@@ -103,10 +115,17 @@ def main():
     parser.add_argument("--cpus", type=int, help="Number of cpu cores used for the simulations")
     args = parser.parse_args()
     try:
-        parse_fatigue_file(args.input_file)
+        fatigue_analysis_data = parse_fatigue_file(args.input_file)
     except FatigueFileReadingError as e:
+        print("Problems when reading the file" + str(args.input_file))
         print(e)
-        sys.exit()
+        sys.exit(1)
+    try:
+        perform_fatigue_analysis(fatigue_analysis_data, cpus=args.cpus)
+    except OdbReadingError as e:
+        print("Problems when reading odb files when performing fatigue analysis")
+        print(e)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

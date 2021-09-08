@@ -54,7 +54,7 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, searc
                      {"search_grid": search_grid}) for stress, data in zip(stress_history_chuncks, steel_data)]
         results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
 
-        return np.hstack(results)
+        return np.vstack(results)
     else:
         return criterion(stress_history, SteelData(steel_data), material)
 

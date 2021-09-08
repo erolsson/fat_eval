@@ -3,24 +3,30 @@ import numpy as np
 from scipy.linalg import eigh
 
 
-def haigh(stress_history, steel_data, material):
-    try:
-        mean_stress_sensitivities = material.mean_stress_sensitivity(steel_data)
-    except AttributeError:
-        raise ValueError("The Haigh effective stress criterion is not implemented for material " + material.name
-                         + " as it does not have any attribute mean_stress_sensitivity")
-    s = evaluate_haigh(stress_history, mean_stress_sensitivities)
-    try:
-        su = material.uniaxial_fatigue_limit(steel_data)
-    except AttributeError:
-        return s
-    data = np.zeros((s.shape[0], 2))
-    data[:, 0] = s
-    data[:, 1] = s/su
-    return data
+class Haigh:
+    def __init__(self):
+        self.name = 'HAIGH'
+        self.variable = 'SH'
+
+    @staticmethod
+    def evaluate(stress_history, steel_data, material):
+        try:
+            mean_stress_sensitivities = material.mean_stress_sensitivity(steel_data)
+        except AttributeError:
+            raise ValueError("The Haigh effective stress criterion is not implemented for material " + material.name
+                             + " as it does not have any attribute mean_stress_sensitivity")
+        s = haigh(stress_history, mean_stress_sensitivities)
+        try:
+            su = material.uniaxial_fatigue_limit(steel_data)
+        except AttributeError:
+            return s
+        data = np.zeros((s.shape[0], 2))
+        data[:, 0] = s
+        data[:, 1] = s/su
+        return data
 
 
-def evaluate_haigh(stress_history, mean_stress_sensitivities):
+def haigh(stress_history, mean_stress_sensitivities):
     time_points = stress_history.shape[0]
     effective_stress = 0*np.array(mean_stress_sensitivities)
     for i, mean_stress_k in enumerate(mean_stress_sensitivities):

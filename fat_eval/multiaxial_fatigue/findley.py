@@ -3,6 +3,32 @@ from math import cos, sin, pi
 import numpy as np
 
 
+class Findley:
+    name = 'Findley'
+    variables = ["SF", "SFI"]
+    field_descriptions = ["Findley effective stress",
+                          "Normalized effective Findley stress, SFI > 1 means fatigue failures"]
+
+    @staticmethod
+    def evaluate(stress_history, steel_data, material, search_grid=None):
+        try:
+            k = material.findley_k(steel_data)
+        except AttributeError:
+            raise ValueError("The Findley effective stress criterion is not implemented for material " + material.name
+                             + " as it does not have any attribute findley_k")
+        if search_grid is None:
+            search_grid = 10
+        s = findley(stress_history, k, search_grid)
+        try:
+            sf = material.critical_findley_stress(steel_data)
+        except AttributeError:
+            return s
+        data = np.zeros((s.shape[0], 2))
+        data[:, 0] = s[:, 0]
+        data[:, 1] = s[:, 0]/sf
+        return data
+
+
 def smallest_enclosing_circle(xp, yp, xo=None, yo=None):
     # [xc, yc, R] = smallest_enclosing_circle(X, Y)
     #
@@ -111,24 +137,7 @@ def get_transform_matrix(theta_deg, phi_deg):
     return trans_matrix
 
 
-def findley(stress_history, steel_data, material, search_grid):
-    try:
-        k = material.findley_k(steel_data)
-    except AttributeError:
-        raise ValueError("The Findley effective stress criterion is not implemented for material " + material.name
-                         + " as it does not have any attribute findley_k")
-    s = evaluate_findley_stress(stress_history, k, search_grid)
-    try:
-        sf = material.critical_findley_stress(steel_data)
-    except AttributeError:
-        return s
-    data = np.zeros((s.shape[0], 2))
-    data[:, 0] = s
-    data[:, 1] = s/sf
-    return data
-
-
-def evaluate_findley_stress(stress_history, k, search_grid):
+def findley(stress_history, k, search_grid):
     phi_space = 90
     theta_space = 180
 
@@ -136,10 +145,10 @@ def evaluate_findley_stress(stress_history, k, search_grid):
     load_steps, points, no_stress_components = stress_history.shape
 
     # Result array [theta, phi, max_sigma_n, max_tau_amplitude, F]
-    findley_vec = np.zeros(points) - 1e6
+    findley_vec = np.zeros((points, 1)) - 1e6
 
-    for theta in range(0, theta_space + search_grid, search_grid):
-        for phi in range(-phi_space, phi_space + search_grid, search_grid):
+    for theta in np.arange(0, theta_space + search_grid, search_grid):
+        for phi in np.arange(-phi_space, phi_space + search_grid, search_grid):
 
             # Compute the transformation matrix for the considered plane
             q = get_transform_matrix(theta, phi)
@@ -159,7 +168,7 @@ def evaluate_findley_stress(stress_history, k, search_grid):
 
                 # Store result if the are larger than the current value (except for first plane, then just store data)
                 sf = max_tau_amplitude + k[j]*max_sigma_n
-                if sf > findley_vec[j]:
-                    findley_vec[j] = sf
+                if sf > findley_vec[j, 0]:
+                    findley_vec[j, 0] = sf
 
     return findley_vec
