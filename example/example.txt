@@ -1,8 +1,8 @@
 ** This is how comments are written
 
 ** path to the abaqus executable
-**abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
-*abaqus, abq=abq2018
+*abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
+
 ** This command evaluates the effective stress named in criterion based on the stress history defined below
 *Effective_Stress, criterion=Findley, material=SS2506
 *Cyclic_stress, odb_file=~/sab_shaft/mechanical_analysis/Maximum_Torque.odb, element_set=ELEMS_HIGHLY_LOADED, instance=PART-1-1, factor=1, frame=-1
