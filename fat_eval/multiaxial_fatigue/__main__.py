@@ -18,7 +18,7 @@ class KeywordData:
 
 class OdbData:
     """
-    Small helper class to handle
+    Small helper class to handle data to be read from and to an odb-file
     """
     def __init__(self, keyword_data):
         def read_keyword_parameter(parameter_name, optional=False, default=None):

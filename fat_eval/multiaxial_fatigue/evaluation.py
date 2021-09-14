@@ -40,7 +40,7 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, searc
     """
 
     if cpus > 1:
-        steel_data_list = [{}]*cpus
+        steel_data_list = [dict() for _ in range(cpus)]
         stress_history_chuncks = np.array_split(stress_history, cpus, axis=1)
         for field_name, data in steel_data.items():
             field_data = np.array_split(data, cpus)

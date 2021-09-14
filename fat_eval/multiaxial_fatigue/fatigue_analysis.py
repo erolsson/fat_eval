@@ -57,8 +57,6 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
         cpus = -1
     try:
         s = evaluate_effective_stress(stress_history, material, criterion.evaluate, cpus, hv=hv)
-        # s = np.zeros((stress_history.shape[1], 2))
-        print(s.shape)
     except ValueError as e:
         print("Problem when evaluating the criterion " + criterion.name)
         print("\t" + str(e))
@@ -78,10 +76,6 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
 
         for i in range(s.shape[1]):
             try:
-                abq.write_data_to_odb(hv, "HV", output_step.odb_file_name,
-                                      step_name=output_step.step_name, instance_name=output_step.instance,
-                                      frame_number=frame_number, set_name=output_step.element_set,
-                                      field_description=criterion.field_descriptions[i])
                 abq.write_data_to_odb(s[:, i], criterion.variables[i], output_step.odb_file_name,
                                       step_name=output_step.step_name, instance_name=output_step.instance,
                                       frame_number=frame_number, set_name=output_step.element_set,

@@ -1,7 +1,8 @@
 ** This is how comments are written
 
 ** path to the abaqus executable
-*abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
+**abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
+*abaqus, abq=abq2018
 
 ** This command evaluates the effective stress named in criterion based on the stress history defined below
 *Effective_Stress, criterion=Findley, material=SS2506
