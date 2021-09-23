@@ -19,7 +19,10 @@ setup(
     license='',
     long_description=README,
     long_description_content_type="text/markdown",
-    install_requires=["numpy", "abaqus_python_interface"],
+    install_requires=[
+        "numpy",
+        "scipy",
+        "abaqus_python_interface"],
     author='erolsson',
     author_email='erolsson@kth.se',
     description='',
