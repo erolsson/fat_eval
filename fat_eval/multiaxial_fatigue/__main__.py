@@ -2,44 +2,13 @@ import argparse
 import pathlib
 import sys
 
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from abaqus_python_interface import OdbReadingError
 
-from fatigue_analysis import perform_fatigue_analysis
-
-
-class KeywordData:
-    def __init__(self, parameters, keyword_name):
-        self.keyword_name = keyword_name
-        self.parameters = parameters
-        self.data = []
-
-
-class OdbData:
-    """
-    Small helper class to handle data to be read from and to an odb-file
-    """
-    def __init__(self, keyword_data):
-        def read_keyword_parameter(parameter_name, optional=False, default=None):
-            try:
-                return keyword_data.parameters[parameter_name]
-            except KeyError:
-                if optional:
-                    return default
-                raise FatigueFileReadingError("The parameter {par} is mandatory for the keyword *"
-                                              "{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
-        self.odb_file_name = pathlib.Path(read_keyword_parameter("odb_file")).expanduser()
-        self.step_name = read_keyword_parameter("step", optional=True, default=None)
-        self.frame_number = read_keyword_parameter("frame", optional=True, default=-1)
-        self.element_set = read_keyword_parameter("element_set", optional=True, default='')
-        self.instance = read_keyword_parameter("instance", optional=True, default=None)
-        self.factor = float(read_keyword_parameter("factor", optional=True, default=1.))
-
-
-class FatigueFileReadingError(ValueError):
-    pass
-
+from fat_eval.multiaxial_fatigue.fatigue_analysis import perform_fatigue_analysis
+from fat_eval.utilities.input_file_functions import FatigueFileReadingError, read_input_file, OdbData
+from fat_eval.utilities.input_file_functions import argparse_check_path
 
 FatigueAnalysisData = namedtuple("FatigueAnalysisData", ["abaqus", "effective_stress", "material", "cyclic_stresses",
                                                          "static_stresses", "output_data", "heat_treatment"])
@@ -52,29 +21,8 @@ def parse_fatigue_file(fatigue_file):
         except KeyError:
             raise FatigueFileReadingError(f"The parameter {par} is mandatory for the keyword "
                                           f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
-    keywords = defaultdict(list)
-    keyword = None
 
-    with open(fatigue_file, 'r') as input_file:
-        file_lines = input_file.readlines()
-        for i, line in enumerate(file_lines, 1):
-            line = line.replace(' ', '').rstrip()
-            if not line.startswith('**') and len(line):
-                line = line.replace(' ', '').rstrip()
-                words = line.split(',')
-                if line.startswith('*'):
-                    keyword = words[0][1:].lower()
-                    parameters = words[1:]
-                    parameter_dict = {}
-                    for parameter in parameters:
-                        par_words = parameter.split("=")
-                        parameter_dict[par_words[0]] = par_words[1]
-                    keywords[keyword].append(KeywordData(parameter_dict, keyword))
-                elif keyword is not None:
-                    keywords[keyword][-1].data.append(line)
-                else:
-                    raise FatigueFileReadingError("The data line \n\t{0} \ncannot appear at line {1} of the "
-                                                  "file".format(line, i))
+    keywords = read_input_file(fatigue_file)
     # Sanity check of the inputs, only one abaqus and one effective_stress keyword are allowed to appear in the file
     mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
     for keyword in mandatory_single_keywords:
@@ -95,20 +43,11 @@ def parse_fatigue_file(fatigue_file):
     static_stresses = [OdbData(stress_step) for stress_step in keywords["static_stress"]]
     output_data = [OdbData(output) for output in keywords["write_to_odb"]]
     heat_treatment = OdbData(keywords["heat_treatment"][0])
-
     return FatigueAnalysisData(abq, effective_stress, material, cyclic_stresses, static_stresses, output_data,
                                heat_treatment)
 
 
 def main():
-    def argparse_check_path(path):
-        if "=" in path:
-            path = path.split("=")[1]
-        path = pathlib.Path(path).expanduser()
-        if not path.is_file():
-            raise argparse.ArgumentTypeError("{0} is not a valid path to a file".format(path))
-        return path
-
     parser = argparse.ArgumentParser(description="Run effective fatigue stress evaluations based on abaqus simulations")
     parser.add_argument("input_file", type=argparse_check_path,
                         help="Path to the file defining the fatigue evaluation")

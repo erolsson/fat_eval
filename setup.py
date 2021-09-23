@@ -7,8 +7,14 @@ README = (HERE / "README.md").read_text()
 setup(
     name='fat_eval',
     version='0.0.1',
-    packages=['fat_eval', 'fat_eval.materials', 'fat_eval.weakest_link', 'fat_eval.weakest_link.FEM_functions',
-              'fat_eval.multiaxial_fatigue'],
+    packages=[
+        'fat_eval',
+        'fat_eval.materials',
+        'fat_eval.weakest_link',
+        'fat_eval.weakest_link.FEM_functions',
+        'fat_eval.multiaxial_fatigue',
+        'fat_eval.utilities'
+    ],
     url='',
     license='',
     long_description=README,
@@ -17,6 +23,7 @@ setup(
     author='erolsson',
     author_email='erolsson@kth.se',
     description='',
-    entry_points={"console_scripts":
-                  ["evaluate_fatigue_stress=fat_eval.multiaxial_fatigue.__main__:main"]}
+    entry_points={"console_scripts": [
+        "evaluate_fatigue_stress=fat_eval.multiaxial_fatigue.__main__:main",
+        "evaluate_weakest_link=fat_eval.weakest_link.__main__:main"]}
 )

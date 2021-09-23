@@ -2,10 +2,10 @@ import sys
 
 import numpy as np
 
-from criteria import criteria
+from fat_eval.multiaxial_fatigue.criteria import criteria
 from fat_eval.materials.fatigue_materials import materials
 from fat_eval.materials.hardess_convertion_functions import HRC2HV
-from evaluation import evaluate_effective_stress
+from fat_eval.multiaxial_fatigue.evaluation import evaluate_effective_stress
 from abaqus_python_interface import ABQInterface, OdbWritingError
 
 
@@ -14,7 +14,7 @@ class StressFieldError(ValueError):
 
 
 def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
-    abq = ABQInterface(fatigue_analysis_data.abaqus)
+    abq = ABQInterface(fatigue_analysis_data.abaqus, output=False)
     stress_history = None
     for i, cyclic_stress in enumerate(fatigue_analysis_data.cyclic_stresses):
         stress = abq.read_data_from_odb(odb_file_name=cyclic_stress.odb_file_name, field_id='S',
@@ -67,8 +67,12 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
             abq.create_empty_odb_from_odb(new_odb_filename=output_step.odb_file_name,
                                           odb_to_copy=fatigue_analysis_data.static_stresses[0].odb_file_name)
         frame_number = output_step.frame_number
+        output_odb_steps = abq.get_steps(output_step.odb_file_name)
         if frame_number != -1:
-            frames = abq.get_frames(output_step.odb_file_name, step_name=output_step.step_name)
+            if output_step.step_name in output_odb_steps:
+                frames = abq.get_frames(output_step.odb_file_name, step_name=output_step.step_name)
+            else:
+                frames = []
             if len(frames):
                 frame_number = frames[-1]
             else:
