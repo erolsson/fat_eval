@@ -33,6 +33,7 @@ class OdbData:
         self.element_set = read_keyword_parameter("element_set", optional=True, default='')
         self.instance = read_keyword_parameter("instance", optional=True, default=None)
         self.factor = float(read_keyword_parameter("factor", optional=True, default=1.))
+        self.field = read_keyword_parameter("field", optional=True, default="S")
 
 
 def read_input_file(input_file):

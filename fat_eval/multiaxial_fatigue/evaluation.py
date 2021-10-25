@@ -1,26 +1,8 @@
-from collections import namedtuple
-
 import numpy as np
 
 from multiprocesser import multi_processer
 
-
-class SteelData:
-    """
-    Small helper class for handling different steel properties like hardness and retained austenite when
-    evaluating different fatigue criteria
-    """
-    def __init__(self, data):
-        self.data = data
-
-    def __getattribute__(self, item):
-        try:
-            return object.__getattribute__(self, "data")[item]
-        except KeyError:
-            return object.__getattribute__(self, item)
-
-    def __reduce_ex__(self, protocol):
-        return self.__class__, (self.data, )
+from fat_eval.utilities.steel_data import SteelData
 
 
 def evaluate_effective_stress(stress_history, material, criterion, cpus=1, search_grid=None, **steel_data):
@@ -29,8 +11,7 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, searc
     :param stress_history:  3d - numpy_array with the stress history, first index represent the time, second index the
                             points and the third index the stress components
     :param steel_data:      keyword arguments for providing needed data of the steel to determine material properties
-    :param material:        instance of a material class that contains functions for material parameters needed
-                            in the effective stress calculation based on steel data
+    :param material:        name of the material, used for looking up a material object to get material data from
     :param criterion        the criterion to be evaluated, current implemented criteria can be imported from
                             fat_eval.multiaxial_fatigue.criteria
     :param cpus             The number of cpus used for the evaluation

@@ -4,16 +4,18 @@
 **abaqus, abq=/share/apps/abaqus/Linux/Commands/abq2018-3
 *abaqus, abq=abq2018
 
+*heat_treatment, odb_file=~/sab_shaft/heat_treatment/Toolbox_Cooling_sab_shaft.odb, element_set=ELEMS_HIGHLY_LOADED
+
 **This command calculates the probability of failure for an element set in an odb_file
 ** It is possible to give a list of number of cycles below, if omitted 2e6 cycles are assumed
-*calculate_probability_of_failure, odb_file=~/sab_shaft/fatigue/fatigue.odb, element_set=ELEMS_HIGHLY_LOADED, material=SS2506, field=SF
+*calculate_probability_of_failure, odb_file=~/sab_shaft/fatigue/fatigue.odb, element_set=ELEMS_HIGHLY_LOADED, material=SS2506, field=SF, symmetry_factor=4
     360Nm, 0, 1e4, 1e5, 1e6
 
 ** This command generates probabilistic SN-curves giving the load and life at a given probability of failure
 ** specified in pf_levels
 ** The data for the command is a table with four columns
-**  Load level (needed for interpolation), odb_file, step, frame number
-*create_probabilistic_sn_curve, material=SS2506, field=SF, pf_levels=0.25;0.50;0.75, element_set=ELEMS_HIGHLY_LOADED
-    360, ~/sab_shaft/fatigue/fatigue.odb, 360Nm, 0
-    365, ~/sab_shaft/fatigue/fatigue.odb, 365Nm, 0
-    370, ~/sab_shaft/fatigue/fatigue.odb, 370Nm, 0
+**  Load level (needed for interpolation), step, frame number
+*create_probabilistic_sn_curve, material=SS2506, field=SF, pf_levels=0.25;0.50;0.75, element_set=ELEMS_HIGHLY_LOADED, odb_file=~/sab_shaft/fatigue/fatigue.odb, symmetry_factor=4
+    360, 360Nm, 0
+    365, 365Nm, 0
+    370, 370Nm, 0

@@ -13,11 +13,8 @@ class Element:
     dofs = None
     strains_components = None
 
-    def __init__(self, nodes):
-        self.xe = np.zeros((len(nodes), 3))
-        for i in range(3):
-            self.xe[:, i] = [n.coordinates[i] for n in nodes]
-        self.node_labels = [n.label for n in nodes]
+    def __init__(self, nodal_positions):
+        self.xe = nodal_positions
 
     def J(self, xi, eta, zeta):  # noqa
         return np.dot(self.d(xi, eta, zeta), self.xe)
@@ -127,6 +124,7 @@ class C3D8(Element):
             B[5, 3*i + 1] += dx[2]
             B[5, 3*i + 2] += dx[1]
         return B
+
 
 element_types = {'C3D8': C3D8}
 

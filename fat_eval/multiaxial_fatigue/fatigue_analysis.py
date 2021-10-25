@@ -7,6 +7,7 @@ from fat_eval.materials.fatigue_materials import materials
 from fat_eval.materials.hardess_convertion_functions import HRC2HV
 from fat_eval.multiaxial_fatigue.evaluation import evaluate_effective_stress
 from abaqus_python_interface import ABQInterface, OdbWritingError
+from fat_eval.utilities.steel_data import abaqus_fields
 
 
 class StressFieldError(ValueError):
@@ -17,6 +18,7 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
     abq = ABQInterface(fatigue_analysis_data.abaqus, output=False)
     stress_history = None
     for i, cyclic_stress in enumerate(fatigue_analysis_data.cyclic_stresses):
+        print("Reading cyclic stresses " + str(i+1))
         stress = abq.read_data_from_odb(odb_file_name=cyclic_stress.odb_file_name, field_id='S',
                                         step_name=cyclic_stress.step_name,
                                         frame_number=int(cyclic_stress.frame_number),
@@ -31,6 +33,7 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
         stress_history[i, :, :] = stress
 
     for k, static_stress in enumerate(fatigue_analysis_data.static_stresses, 1):
+        print("Reading static stresses " + str(k))
         stress = abq.read_data_from_odb(odb_file_name=static_stress.odb_file_name, field_id='S',
                                         step_name=static_stress.step_name,
                                         frame_number=int(static_stress.frame_number),
@@ -44,25 +47,35 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
                 raise StressFieldError("Problems when adding the stress field in *static_stress " + str(k)
                                        + " to the stress history")
     heat_treatment = fatigue_analysis_data.heat_treatment
-    hardness = abq.read_data_from_odb(odb_file_name=heat_treatment.odb_file_name, field_id='SDV_HARDNESS',
-                                      step_name=heat_treatment.step_name, frame_number=heat_treatment.frame_number,
-                                      set_name=heat_treatment.element_set, instance_name=heat_treatment.instance)
-    if hardness.shape[0] != stress_history.shape[1]:
-        raise StressFieldError("The hardness field in " + str(heat_treatment.odb_file_name) + " has a different shape "
-                               "than the stress field")
-    hv = HRC2HV(hardness)
+    heat_treatment_data = {}
+    for heat_treatment_field in abaqus_fields:
+        print("Reading " + heat_treatment_field)
+        field = abq.read_data_from_odb(
+            odb_file_name=heat_treatment.odb_file_name,
+            field_id=heat_treatment_field,
+            step_name=heat_treatment.step_name,
+            frame_number=heat_treatment.frame_number,
+            set_name=heat_treatment.element_set,
+            instance_name=heat_treatment.instance)
+        if field.shape[0] != stress_history.shape[1]:
+            raise StressFieldError("The field " + heat_treatment_field + "  in " + str(heat_treatment.odb_file_name)
+                                   + " has a different shape than the stress field")
+        heat_treatment_data[heat_treatment_field] = field
     criterion = criteria[fatigue_analysis_data.effective_stress]
-    material = materials[fatigue_analysis_data.material]
     if cpus is None:
-        cpus = -1
+        cpus = 1
     try:
-        s = evaluate_effective_stress(stress_history, material, criterion.evaluate, cpus, hv=hv)
+        print("Evaluating criterion " + criterion.name + " at " + str(stress_history.shape[1]) + " positions")
+        print("\tThis might take a while...")
+        s = evaluate_effective_stress(stress_history, fatigue_analysis_data.material, criterion.evaluate, cpus,
+                                      **heat_treatment_data)
     except ValueError as e:
         print("Problem when evaluating the criterion " + criterion.name)
         print("\t" + str(e))
         sys.exit()
 
     for output_step in fatigue_analysis_data.output_data:
+        print("Writing data to the odb file " + str(output_step.odb_file_name))
         if not output_step.odb_file_name.is_file():
             abq.create_empty_odb_from_odb(new_odb_filename=output_step.odb_file_name,
                                           odb_to_copy=fatigue_analysis_data.static_stresses[0].odb_file_name)
@@ -88,3 +101,4 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
                 print("Problem when writing the fatigue field " + criterion.variables[i] + " to the odb file "
                       + str(output_step.odb_file_name))
                 print('\t', e)
+    print("Done")

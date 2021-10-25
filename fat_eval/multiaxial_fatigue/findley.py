@@ -2,6 +2,8 @@ from math import cos, sin, pi
 
 import numpy as np
 
+from fat_eval.materials.fatigue_materials import materials
+
 
 class Findley:
     name = 'Findley'
@@ -10,7 +12,8 @@ class Findley:
                           "Normalized effective Findley stress, SFI > 1 means fatigue failures"]
 
     @staticmethod
-    def evaluate(stress_history, steel_data, material, search_grid=None):
+    def evaluate(stress_history, steel_data, material_name, search_grid=None):
+        material = materials[material_name]
         try:
             k = material.findley_k(steel_data)
         except AttributeError:
