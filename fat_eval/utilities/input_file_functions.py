@@ -36,9 +36,13 @@ class OdbData:
         self.field = read_keyword_parameter("field", optional=True, default="S")
 
 
-def read_input_file(input_file):
+def read_input_file(input_file, valid_keywords, mandatory_keywords=None, mandatory_single_keywords=None):
     keywords = defaultdict(list)
     keyword = None
+    if mandatory_keywords is None:
+        mandatory_keywords = set()
+    if mandatory_single_keywords is None:
+        mandatory_single_keywords = set()
 
     with open(input_file, 'r') as input_file:
         file_lines = input_file.readlines()
@@ -49,6 +53,10 @@ def read_input_file(input_file):
                 words = line.split(',')
                 if line.startswith('*'):
                     keyword = words[0][1:].lower()
+                    if keyword not in valid_keywords:
+                        raise FatigueFileReadingError(
+                            "The keyword {keyword} on line {line} is not supported".format(keyword=keyword, line=i)
+                        )
                     parameters = words[1:]
                     parameter_dict = {}
                     for parameter in parameters:
@@ -58,8 +66,17 @@ def read_input_file(input_file):
                 elif keyword is not None:
                     keywords[keyword][-1].data.append(line)
                 else:
-                    raise FatigueFileReadingError("The data line \n\t{0} \ncannot appear at line {1} of the "
-                                                  "file".format(line, i))
+                    raise FatigueFileReadingError(
+                        "The data line \n\t{0} \ncannot appear at line {1} of the file".format(line, i)
+                    )
+    for keyword in mandatory_keywords:
+        if len(keywords[keyword]) == 0:
+            raise FatigueFileReadingError(f"The keyword *{keyword} is mandatory and must in the "
+                                          f"file".format(keyword=keyword))
+    for keyword in mandatory_single_keywords:
+        if len(keywords[keyword]) != 1:
+            raise FatigueFileReadingError(f"The keyword *{keyword} is mandatory and must appear only once "
+                                          f"in the file".format(keyword=keyword))
     return keywords
 
 

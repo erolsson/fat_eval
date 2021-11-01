@@ -11,7 +11,7 @@ def m(steel_data, effective_stress, N=2e6):
         b = 5
     else:
         b = 28
-    return m*(N/1e5)**(-1/b)
+    return m*(N/1e5)**(-1/b)*(2e6/1e5)**(1/28)
 
 
 def mean_stress_sensitivity(steel_data):
@@ -32,4 +32,4 @@ def sw(steel_data, effective_stress, N=2e6):
     else:
         b = 28
     sw = 158.7 + 0.481538*steel_data.HV
-    return sw*(N/1e5)**(-1/b)
+    return sw*(N/1e5)**(-1/b)*(2e6/1e5)**(1/28)

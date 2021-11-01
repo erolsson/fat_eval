@@ -22,19 +22,15 @@ def parse_fatigue_file(fatigue_file):
             raise FatigueFileReadingError(f"The parameter {par} is mandatory for the keyword "
                                           f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
 
-    keywords = read_input_file(fatigue_file)
-    # Sanity check of the inputs, only one abaqus and one effective_stress keyword are allowed to appear in the file
+    valid_keywords = {"abaqus", "effective_stress", "heat_treatment"}
+    mandatory_keywords = ['cyclic_stress', 'abaqus']
     mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
-    for keyword in mandatory_single_keywords:
-        if len(keywords[keyword]) != 1:
-            raise FatigueFileReadingError(f"The keyword *{keyword} is mandatory and must appear only once "
-                                          f"in the file".format(keyword=keyword))
-
-    mandatory_keywords = ['cyclic_stress']
-    for keyword in mandatory_keywords:
-        if len(keywords[keyword]) == 0:
-            raise FatigueFileReadingError(f"The keyword *{keyword} is mandatory and must in the "
-                                          f"file".format(keyword=keyword))
+    keywords = read_input_file(
+        input_file=fatigue_file,
+        valid_keywords=valid_keywords,
+        mandatory_keywords=mandatory_keywords,
+        mandatory_single_keywords=mandatory_single_keywords
+    )
 
     abq = read_mandatory_parameter(keywords["abaqus"][0], "abq")
     effective_stress = read_mandatory_parameter(keywords["effective_stress"][0], "criterion")

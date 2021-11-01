@@ -1,6 +1,6 @@
 import numpy as np
 
-from multiprocesser import multi_processer
+import multiprocesser
 
 from fat_eval.utilities.steel_data import SteelData
 
@@ -19,25 +19,9 @@ def evaluate_effective_stress(stress_history, material, criterion, cpus=1, searc
                             Default is none which sets to a suitable value in each criterion
     :returns                A numpy array with effective fatigue stress values
     """
-
-    if cpus > 1:
-        steel_data_list = [dict() for _ in range(cpus)]
-        stress_history_chuncks = np.array_split(stress_history, cpus, axis=1)
-        for field_name, data in steel_data.items():
-            field_data = np.array_split(data, cpus)
-            for i in range(cpus):
-                steel_data_list[i][field_name] = field_data[i]
-        steel_data = []
-        for data in steel_data_list:
-            steel_data.append(SteelData(data))
-        job_list = [(criterion,
-                     [stress, data, material],
-                     {"search_grid": search_grid}) for stress, data in zip(stress_history_chuncks, steel_data)]
-        results = multi_processer(job_list, cpus=cpus, delay=0, timeout=1e9)
-
-        return np.vstack(results)
-    else:
-        return criterion(stress_history, SteelData(steel_data), material)
+    kw_args = {"material_name": material, "search_grid": search_grid}
+    return multiprocesser.apply(criterion, [stress_history, SteelData(steel_data)], keyword_data=kw_args, axis_split=1,
+                                cpus=cpus, timeout=1e9, delay=0.)
 
 
 def main():

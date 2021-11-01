@@ -69,6 +69,7 @@ class C3D8(Element):
 
     def __init__(self, nodes):
         super(C3D8, self).__init__(nodes)
+        self.gauss_point_volumes = [super(C3D8, self).gp_volume(i) for i in range(8)]
 
     def d(self, xi, eta, zeta):
         """
@@ -80,13 +81,13 @@ class C3D8(Element):
         """
 
         d_matrix = np.zeros((3, 8))
-        for i in range(8):
-            d_matrix[0, i] = (1. + eta*self.local_nodal_pos[i, 1]) * \
-                             (1. + zeta*self.local_nodal_pos[i, 2])*self.local_nodal_pos[i, 0]/8
-            d_matrix[1, i] = (1. + xi*self.local_nodal_pos[i, 0]) * \
-                             (1. + zeta*self.local_nodal_pos[i, 2])*self.local_nodal_pos[i, 1]/8
-            d_matrix[2, i] = (1. + xi*self.local_nodal_pos[i, 0]) * \
-                             (1. + eta*self.local_nodal_pos[i, 1])*self.local_nodal_pos[i, 2]/8
+        d_matrix[0, :] = ((1. + eta*self.local_nodal_pos[:, 1]) *
+                          (1. + zeta*self.local_nodal_pos[:, 2])*self.local_nodal_pos[:, 0]/8)
+        d_matrix[1, :] = ((1. + xi*self.local_nodal_pos[:, 0]) *
+                          (1. + zeta*self.local_nodal_pos[:, 2])*self.local_nodal_pos[:, 1]/8)
+        d_matrix[2, :] = ((1. + xi*self.local_nodal_pos[:, 0]) *
+                          (1. + eta*self.local_nodal_pos[:, 1])*self.local_nodal_pos[:, 2]/8)
+
         return d_matrix
 
     def N(self, xi, eta, zeta):
@@ -124,6 +125,9 @@ class C3D8(Element):
             B[5, 3*i + 1] += dx[2]
             B[5, 3*i + 2] += dx[1]
         return B
+
+    def gp_volume(self, i):
+        return self.gauss_point_volumes[i]
 
 
 element_types = {'C3D8': C3D8}

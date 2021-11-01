@@ -1,3 +1,5 @@
+import numpy as np
+
 from fat_eval.materials.hardess_convertion_functions import HRC2HV
 abaqus_fields = ["SDV_HARDNESS"]
 
@@ -19,6 +21,15 @@ class SteelData:
     def __reduce_ex__(self, protocol):
         return self.__class__, (self.data, )
 
+    def __getitem__(self, val):
+        data = {}
+        for label, values in self.data.items():
+            data[label] = values[val]
+        return SteelData(data)
+
+    def __len__(self):
+        return len(next(iter(self.data.items()))[1])
+
     @property
     def HV(self):
         return HRC2HV(self.SDV_HARDNESS)
@@ -26,3 +37,7 @@ class SteelData:
 
 if __name__ == '__main__':
     print(SteelData({"SDV_HARDNESS": 63}).HV)
+    steel_data = SteelData({"SDV_HARDNESS": np.array([62, 63, 64, 65]),
+                            "SDV_AUSTENITE": np.array([0.18, 0.19, 0.20, 21])})
+
+    print(steel_data[1:3].HV)

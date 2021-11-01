@@ -6,11 +6,11 @@
 
 ** This command evaluates the effective stress named in criterion based on the stress history defined below
 *Effective_Stress, criterion=Findley, material=SS2506
-*Cyclic_stress, odb_file=~/sab_shaft/mechanical_analysis/Maximum_Torque.odb, element_set=ELEMS_HIGHLY_LOADED, factor=1.080332409972299
+*Cyclic_stress, odb_file=~/sab_shaft/mechanical_analysis/Maximum_Torque.odb, element_set=ELEMS_HIGHLY_LOADED, factor=0.9418282548476454
 *Cyclic_stress, odb_file=~/sab_shaft/mechanical_analysis/Minimum_Torque.odb, element_set=ELEMS_HIGHLY_LOADED, factor=1
 *Static_stress, odb_file=~/sab_shaft/heat_treatment/Toolbox_Cooling_sab_shaft.odb, element_set=ELEMS_HIGHLY_LOADED, factor=1
 
 *heat_treatment, odb_file=~/sab_shaft/heat_treatment/Toolbox_Cooling_sab_shaft.odb, element_set=ELEMS_HIGHLY_LOADED
 
 ** This command writes the effective stress to an odb-file. The odb-file is created from the first cyclic odb-file if it does not exist
-*write_to_odb, odb_file=~/sab_shaft/fatigue/fatigue.odb, step=390Nm, frame=0, element_set=ELEMS_HIGHLY_LOADED
+*write_to_odb, odb_file=~/sab_shaft/fatigue/fatigue.odb, step=340Nm, frame=0, element_set=ELEMS_HIGHLY_LOADED
