@@ -69,9 +69,9 @@ def parse_weakest_link_file(input_file, cpus):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run effective fatigue stress evaluations based on abaqus simulations")
+    parser = argparse.ArgumentParser(description="Run weakest-link evaluations based on abaqus odb-files")
     parser.add_argument("input_file", type=argparse_check_path,
-                        help="Path to the file defining the fatigue evaluation")
+                        help="Path to the file defining the weakest-link evaluation")
     parser.add_argument("--cpus", type=int, help="Number of cpu cores used for the simulations")
     args = parser.parse_args()
     try:
