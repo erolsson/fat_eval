@@ -22,7 +22,7 @@ def parse_fatigue_file(fatigue_file):
             raise FatigueFileReadingError(f"The parameter {par} is mandatory for the keyword "
                                           f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
 
-    valid_keywords = {"abaqus", "effective_stress", "heat_treatment"}
+    valid_keywords = {"abaqus", "effective_stress", "heat_treatment", "cyclic_stress", "static_stress", "write_to_odb"}
     mandatory_keywords = ['cyclic_stress', 'abaqus']
     mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
     keywords = read_input_file(

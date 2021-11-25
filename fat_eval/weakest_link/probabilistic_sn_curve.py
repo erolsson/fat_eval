@@ -4,7 +4,7 @@ from abaqus_python_interface import ABQInterface
 
 from multiprocesser import multi_processer
 
-from weakest_link_evaluator import setup_weakest_link_evaluator, WeakestLinkEvaluator
+from fat_eval.weakest_link.weakest_link_evaluator import setup_weakest_link_evaluator, WeakestLinkEvaluator
 
 
 def probabilistic_sn_curve(odb_data, material, heat_treatment,

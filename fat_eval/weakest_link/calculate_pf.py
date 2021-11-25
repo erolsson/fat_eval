@@ -1,6 +1,6 @@
 from abaqus_python_interface import ABQInterface
 
-from weakest_link_evaluator import setup_weakest_link_evaluator
+from fat_eval.weakest_link.weakest_link_evaluator import setup_weakest_link_evaluator
 
 
 def calculate_probability_of_failure(odb_file, material, field, heat_treatment, element_set, instance_name,

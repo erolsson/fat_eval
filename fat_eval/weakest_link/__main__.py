@@ -5,8 +5,8 @@ import sys
 from fat_eval.utilities.input_file_functions import argparse_check_path, FatigueFileReadingError, read_input_file
 from fat_eval.utilities.input_file_functions import OdbData
 
-from calculate_pf import calculate_probability_of_failure
-from probabilistic_sn_curve import probabilistic_sn_curve
+from fat_eval.weakest_link.calculate_pf import calculate_probability_of_failure
+from fat_eval.weakest_link.probabilistic_sn_curve import probabilistic_sn_curve
 
 
 class LoadCase:
