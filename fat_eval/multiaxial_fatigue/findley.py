@@ -2,7 +2,7 @@ from math import cos, sin, pi
 
 import numpy as np
 
-from fat_eval.fatigue_materials.fatigue_materials import materials
+from fat_eval.fatigue_materials import materials
 
 
 class Findley:
