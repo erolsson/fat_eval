@@ -68,7 +68,7 @@ def haigh(stress_history, mean_stress_sensitivities):
 def main():
     from collections import namedtuple
 
-    from fat_eval.materials.fatigue_materials import SS2506
+    from fat_eval.fatigue_materials.fatigue_materials import SS2506
 
     SteelData = namedtuple('SteelData', ['hv'])
     stress_history = np.array([[[1, 0, 0, 0, 0, 0],

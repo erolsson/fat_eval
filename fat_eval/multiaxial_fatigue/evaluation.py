@@ -29,7 +29,7 @@ def main():
     Function for testing the functionality in-place
     :return nothing:
     """
-    from fat_eval.materials.fatigue_materials import SS2506
+    from fat_eval.fatigue_materials.fatigue_materials import SS2506
     from fat_eval.multiaxial_fatigue.criteria import haigh
     num_points = 3000
 

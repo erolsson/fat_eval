@@ -1,6 +1,6 @@
 import numpy as np
 
-from fat_eval.materials.hardess_convertion_functions import HRC2HV
+from fat_eval.fatigue_materials.hardess_convertion_functions import HRC2HV
 abaqus_fields = ["SDV_HARDNESS"]
 
 

@@ -6,7 +6,7 @@ from abaqus_python_interface import ABQInterface
 
 from fat_eval.weakest_link.FEM_functions.elements import element_types
 from fat_eval.weakest_link.hazard_functions import weibull
-from fat_eval.materials import materials
+from fat_eval.fatigue_materials import materials
 from fat_eval.utilities.steel_data import abaqus_fields, SteelData
 
 
