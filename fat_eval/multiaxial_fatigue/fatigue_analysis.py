@@ -25,7 +25,9 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
             "step_name": read_job.step_name,
             "frame_number": int(read_job.frame_number),
             "set_name": read_job.element_set,
-            "instance_name": read_job.instance
+            "instance_name": read_job.instance,
+            "coordinate_system": read_job.coordinate_system,
+            "deform_system": read_job.deform_system
         }
         read_odb_jobs.append((abq.read_data_from_odb, [], kw_args))
 

@@ -34,6 +34,8 @@ class OdbData:
         self.instance = read_keyword_parameter("instance", optional=True, default=None)
         self.factor = float(read_keyword_parameter("factor", optional=True, default=1.))
         self.field = read_keyword_parameter("field", optional=True, default="S")
+        self.coordinate_system = read_keyword_parameter("coordinate_system", optional=True, default=None)
+        self.deform_system = read_keyword_parameter("deform_system", optional=True, default=True)
 
 
 def read_input_file(input_file, valid_keywords, mandatory_keywords=None, mandatory_single_keywords=None):
