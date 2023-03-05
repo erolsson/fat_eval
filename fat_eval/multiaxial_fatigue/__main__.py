@@ -11,7 +11,8 @@ from fat_eval.utilities.input_file_functions import FatigueFileReadingError, rea
 from fat_eval.utilities.input_file_functions import argparse_check_path
 
 FatigueAnalysisData = namedtuple("FatigueAnalysisData", ["abaqus", "effective_stress", "material", "cyclic_stresses",
-                                                         "static_stresses", "output_data", "heat_treatment"])
+                                                         "static_stresses", "output_data", "heat_treatment",
+                                                         "copy_odb"])
 
 
 def parse_fatigue_file(fatigue_file):
@@ -22,7 +23,8 @@ def parse_fatigue_file(fatigue_file):
             raise FatigueFileReadingError(f"The parameter {par} is mandatory for the keyword "
                                           f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
 
-    valid_keywords = {"abaqus", "effective_stress", "heat_treatment", "cyclic_stress", "static_stress", "write_to_odb"}
+    valid_keywords = {"abaqus", "effective_stress", "heat_treatment", "cyclic_stress", "static_stress", "write_to_odb",
+                      "create_odb_from_odb"}
     mandatory_keywords = ['cyclic_stress', 'abaqus']
     mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
     keywords = read_input_file(
@@ -39,8 +41,14 @@ def parse_fatigue_file(fatigue_file):
     static_stresses = [OdbData(stress_step) for stress_step in keywords["static_stress"]]
     output_data = [OdbData(output) for output in keywords["write_to_odb"]]
     heat_treatment = OdbData(keywords["heat_treatment"][0])
+    if "create_odb_from_odb" in keywords:
+        copy_odb = (read_mandatory_parameter(keywords["create_odb_from_odb"][0], "odb_to_copy"),
+                    read_mandatory_parameter(keywords["create_odb_from_odb"][0], "new_odb"))
+    else:
+        copy_odb = None
+
     return FatigueAnalysisData(abq, effective_stress, material, cyclic_stresses, static_stresses, output_data,
-                               heat_treatment)
+                               heat_treatment, copy_odb)
 
 
 def main():

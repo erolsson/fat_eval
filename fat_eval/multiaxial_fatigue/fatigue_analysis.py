@@ -17,6 +17,8 @@ class StressFieldError(ValueError):
 
 def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
     abq = ABQInterface(fatigue_analysis_data.abaqus)
+    if fatigue_analysis_data.copy_odb:
+        abq.create_empty_odb_from_odb(fatigue_analysis_data.copy_odb[1], fatigue_analysis_data[0])
     read_odb_jobs = []
     for read_job in itertools.chain(fatigue_analysis_data.cyclic_stresses, fatigue_analysis_data.static_stresses):
         kw_args = {
