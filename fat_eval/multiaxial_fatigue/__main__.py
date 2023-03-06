@@ -12,7 +12,7 @@ from fat_eval.utilities.input_file_functions import argparse_check_path
 
 FatigueAnalysisData = namedtuple("FatigueAnalysisData", ["abaqus", "effective_stress", "material", "cyclic_stresses",
                                                          "static_stresses", "output_data", "heat_treatment",
-                                                         "copy_odb"])
+                                                         "copy_odb", "stress_history_data"])
 
 
 def parse_fatigue_file(fatigue_file):
@@ -24,7 +24,7 @@ def parse_fatigue_file(fatigue_file):
                                           f"{keyword}".format(par=parameter_name, keyword=keyword_data.keyword_name))
 
     valid_keywords = {"abaqus", "effective_stress", "heat_treatment", "cyclic_stress", "static_stress", "write_to_odb",
-                      "create_odb_from_odb"}
+                      "create_odb_from_odb", "write_stress_history"}
     mandatory_keywords = ['cyclic_stress', 'abaqus']
     mandatory_single_keywords = ['abaqus', 'effective_stress', 'heat_treatment']
     keywords = read_input_file(
@@ -40,15 +40,18 @@ def parse_fatigue_file(fatigue_file):
     cyclic_stresses = [OdbData(stress_step) for stress_step in keywords["cyclic_stress"]]
     static_stresses = [OdbData(stress_step) for stress_step in keywords["static_stress"]]
     output_data = [OdbData(output) for output in keywords["write_to_odb"]]
+    stress_history_data = [OdbData(history) for history in keywords["write_stress_history"]]
     heat_treatment = OdbData(keywords["heat_treatment"][0])
+
+    CopyOdbData = namedtuple("CopyOdbData", ["odb_to_copy", "new_odb"])
     if "create_odb_from_odb" in keywords:
-        copy_odb = (read_mandatory_parameter(keywords["create_odb_from_odb"][0], "odb_to_copy"),
-                    read_mandatory_parameter(keywords["create_odb_from_odb"][0], "new_odb"))
+        copy_odb = CopyOdbData(odb_to_copy=read_mandatory_parameter(keywords["create_odb_from_odb"][0], "odb_to_copy"),
+                    new_odb=read_mandatory_parameter(keywords["create_odb_from_odb"][0], "new_odb"))
     else:
         copy_odb = None
 
     return FatigueAnalysisData(abq, effective_stress, material, cyclic_stresses, static_stresses, output_data,
-                               heat_treatment, copy_odb)
+                               heat_treatment, copy_odb, stress_history_data)
 
 
 def main():

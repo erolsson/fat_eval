@@ -18,7 +18,8 @@ class StressFieldError(ValueError):
 def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
     abq = ABQInterface(fatigue_analysis_data.abaqus, output=True)
     if fatigue_analysis_data.copy_odb:
-        abq.create_empty_odb_from_odb(fatigue_analysis_data.copy_odb[1], fatigue_analysis_data.copy_odb[0])
+        abq.create_empty_odb_from_odb(new_odb_filename=fatigue_analysis_data.copy_odb.new_odb,
+                                      odb_to_copy=fatigue_analysis_data.copy_odb.odb_to_copy)
     read_odb_jobs = []
     for read_job in itertools.chain(fatigue_analysis_data.cyclic_stresses, fatigue_analysis_data.static_stresses):
         kw_args = {
@@ -67,6 +68,31 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
             except ValueError:
                 raise StressFieldError("Problems when adding the stress field in *static_stress " + str(k + 1)
                                        + " to the stress history")
+
+    for output in fatigue_analysis_data.stress_history_data:
+        for time_step in range(stress_history.shape[0]):
+            raw_field_id = "S" if output.coordinate_system is None else "S_raw"
+            try:
+                abq.write_data_to_odb(stress_history[time_step, :, :], raw_field_id, output.odb_file_name,
+                                      step_name=output.step, instance_name=output.instance,
+                                      frame_number=time_step, set_name=output.element_set,
+                                      field_description="Raw data for the stress history ")
+            except OdbWritingError as e:
+                print("Problem when writing the stress history field  to the odb file " + str(output.odb_file_name))
+                print('\t', e)
+            if output.coordinate_system is not None:
+                transformed_stresses = abq.read_data_from_odb(raw_field_id, output.odb_file_name,
+                                                              step_name=output.step + "_raw",
+                                                              frame_number=time_step, set_name=output.element_set,
+                                                              instance_name=output.instance,
+                                                              coordinate_system=output.coordinate_system)
+
+                abq.write_data_to_odb(transformed_stresses, "S_" + output.coordinate_system, output.odb_file_name,
+                                      step_name=output.step, instance_name=output.instance,
+                                      frame_number=time_step, set_name=output.element_set,
+                                      field_description="Stress history transformed using the system "
+                                                        + output.coordinate_system)
+
     heat_treatment = fatigue_analysis_data.heat_treatment
     heat_treatment_data = {}
     for i, heat_treatment_field in enumerate(abaqus_fields):
