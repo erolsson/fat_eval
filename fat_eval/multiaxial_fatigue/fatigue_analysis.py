@@ -74,7 +74,7 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
             raw_field_id = "S" if output.coordinate_system is None else "S_raw"
             try:
                 abq.write_data_to_odb(stress_history[time_step, :, :], raw_field_id, output.odb_file_name,
-                                      step_name=output.step, instance_name=output.instance,
+                                      step_name=output.step_name, instance_name=output.instance,
                                       frame_number=time_step, set_name=output.element_set,
                                       field_description="Raw data for the stress history ")
             except OdbWritingError as e:
@@ -82,13 +82,13 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
                 print('\t', e)
             if output.coordinate_system is not None:
                 transformed_stresses = abq.read_data_from_odb(raw_field_id, output.odb_file_name,
-                                                              step_name=output.step + "_raw",
+                                                              step_name=output.step_name,
                                                               frame_number=time_step, set_name=output.element_set,
                                                               instance_name=output.instance,
                                                               coordinate_system=output.coordinate_system)
 
                 abq.write_data_to_odb(transformed_stresses, "S_" + output.coordinate_system, output.odb_file_name,
-                                      step_name=output.step, instance_name=output.instance,
+                                      step_name=output.step_name, instance_name=output.instance,
                                       frame_number=time_step, set_name=output.element_set,
                                       field_description="Stress history transformed using the system "
                                                         + output.coordinate_system)
