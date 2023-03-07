@@ -70,7 +70,9 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
                                        + " to the stress history")
 
     for output in fatigue_analysis_data.stress_history_data:
+        print("Writing the stress history to", output.odb_file_name)
         for time_step in range(stress_history.shape[0]):
+            print("Writing history step", time_step, "of", stress_history.shape[0])
             raw_field_id = "S" if output.coordinate_system is None else "S_raw"
             try:
                 abq.write_data_to_odb(stress_history[time_step, :, :], raw_field_id, output.odb_file_name,
@@ -112,6 +114,12 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
         print("\tThis might take a while...")
         s = evaluate_effective_stress(stress_history, fatigue_analysis_data.material, criterion.evaluate, cpus,
                                       **heat_treatment_data)
+        invalid_points = np.count(np.isfinite(s[:, 0]))
+        if invalid_points > 0:
+            print("Warning: numerical issues at", invalid_points, "points when evaluating the effective stress, "
+                                                                  "creating Infs and NaNs")
+            print("These values are set to zero")
+        s[~np.isfinite(s)] = 0
     except ValueError as e:
         print("Problem when evaluating the criterion " + criterion.name)
         print("\t" + str(e))
