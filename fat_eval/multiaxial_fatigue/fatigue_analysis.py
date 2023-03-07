@@ -73,28 +73,16 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
         print("Writing the stress history to", output.odb_file_name)
         for time_step in range(stress_history.shape[0]):
             print("Writing history step", time_step, "of", stress_history.shape[0])
-            raw_field_id = "S" if output.coordinate_system is None else "S_raw"
             try:
-                abq.write_data_to_odb(stress_history[time_step, :, :], raw_field_id, output.odb_file_name,
+                abq.write_data_to_odb(stress_history[time_step, :, :], "S", output.odb_file_name,
                                       step_name=output.step_name, instance_name=output.instance,
                                       frame_number=time_step, set_name=output.element_set,
-                                      field_description="Raw data for the stress history ")
+                                      field_description="Raw data for the stress history. Be aware that coordinate "
+                                                        "systems is not accounted for",
+                                      invariants=["MISES", "MAX_PRINCIPAL", "MID_PRINCIPAL", "MIN_PRINCIPAL"])
             except OdbWritingError as e:
                 print("Problem when writing the stress history field  to the odb file " + str(output.odb_file_name))
                 print('\t', e)
-            if output.coordinate_system is not None:
-                transformed_stresses = abq.read_data_from_odb(raw_field_id, output.odb_file_name,
-                                                              step_name=output.step_name,
-                                                              frame_number=time_step, set_name=output.element_set,
-                                                              instance_name=output.instance,
-                                                              coordinate_system=output.coordinate_system,
-                                                              deform_system=False)
-
-                abq.write_data_to_odb(transformed_stresses, "S_" + output.coordinate_system, output.odb_file_name,
-                                      step_name=output.step_name, instance_name=output.instance,
-                                      frame_number=time_step, set_name=output.element_set,
-                                      field_description="Stress history transformed using the system "
-                                                        + output.coordinate_system)
 
     heat_treatment = fatigue_analysis_data.heat_treatment
     heat_treatment_data = {}
