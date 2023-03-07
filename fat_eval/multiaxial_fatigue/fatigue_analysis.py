@@ -72,7 +72,7 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
     for output in fatigue_analysis_data.stress_history_data:
         print("Writing the stress history to", output.odb_file_name)
         for time_step in range(stress_history.shape[0]):
-            print("Writing history step", time_step, "of", stress_history.shape[0])
+            print("Writing history step", time_step, "of", stress_history.shape[0] - 1)
             try:
                 abq.write_data_to_odb(stress_history[time_step, :, :], "S", output.odb_file_name,
                                       step_name=output.step_name, instance_name=output.instance,
