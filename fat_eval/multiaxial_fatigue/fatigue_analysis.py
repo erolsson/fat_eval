@@ -85,7 +85,8 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
                                                               step_name=output.step_name,
                                                               frame_number=time_step, set_name=output.element_set,
                                                               instance_name=output.instance,
-                                                              coordinate_system=output.coordinate_system)
+                                                              coordinate_system=output.coordinate_system,
+                                                              deform_system=False)
 
                 abq.write_data_to_odb(transformed_stresses, "S_" + output.coordinate_system, output.odb_file_name,
                                       step_name=output.step_name, instance_name=output.instance,
