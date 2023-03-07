@@ -102,7 +102,7 @@ def perform_fatigue_analysis(fatigue_analysis_data, cpus=1):
         print("\tThis might take a while...")
         s = evaluate_effective_stress(stress_history, fatigue_analysis_data.material, criterion.evaluate, cpus,
                                       **heat_treatment_data)
-        invalid_points = np.count_nonzero(np.isfinite(s[:, 0]))
+        invalid_points = np.count_nonzero(~np.isfinite(s[:, 0]))
         if invalid_points > 0:
             print("Warning: numerical issues at", invalid_points, "points when evaluating the effective stress, "
                                                                   "creating Infs and NaNs")
